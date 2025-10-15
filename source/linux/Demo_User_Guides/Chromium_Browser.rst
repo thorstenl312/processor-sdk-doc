@@ -306,3 +306,37 @@ use the mouse to click the "Run Benchmark" button.
         | |__PART_FAMILY_DEVICE_NAMES__|  | 177.11 @ 1080p60                                                      |
         +---------------------------------+-----------------------------------------------------------------------+
 
+.. ifconfig:: CONFIG_part_variant not in ('AM62X', 'AM62AX', 'J721E')
+
+    Hardware Accelerated Video Streaming
+    ------------------------------------
+
+    Streaming platforms and demuxed videos support hardware acceleration for video playback. 
+    This is done using the v4l2 stateful decoder API that interacts with the Wave5 present on |__PART_FAMILY_DEVICE_NAMES__|.
+
+    Tested streaming sources include HTML video playback, YouTube, and Vimeo.
+
+    HTML video playback:
+
+    .. code-block:: console
+
+        $ chromium http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+
+    Vimeo streaming:
+
+    .. code-block:: console
+
+        $ chromium https://player.vimeo.com/video/640499893
+
+    YouTube streaming:
+
+    .. code-block:: console
+
+        $ chromium https://www.youtube.com/embed/R6MlUcmOul8
+
+    .. note::
+
+        - YouTube and Vimeo perform best when played in an **embedded player**, as loading the full webpage and thumbnails is CPU-intensive.
+        - Keeping the **video progress bar minimized** also improves playback performance.
+        - For YouTube streaming, **Chromium requires an extension** to force YouTube to use the H.264 codec for hardware acceleration.
+        - Tested resolutions is up to 1080p30. Higher resolutions may work depending on the platform capabilities.
