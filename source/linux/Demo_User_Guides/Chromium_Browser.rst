@@ -306,37 +306,69 @@ use the mouse to click the "Run Benchmark" button.
         | |__PART_FAMILY_DEVICE_NAMES__|  | 177.11 @ 1080p60                                                      |
         +---------------------------------+-----------------------------------------------------------------------+
 
+
+Video Streaming
+---------------
+
 .. ifconfig:: CONFIG_part_variant not in ('AM62X', 'AM62AX', 'J721E')
 
-    Hardware Accelerated Video Streaming
-    ------------------------------------
+    Streaming platforms and demuxed videos support hardware acceleration for video playback.
+    This is achieved using the V4L2 stateful decoder API that interfaces with the :doc:`Wave5 <../Foundational_Components_Multimedia_wave5>` hardware decoder present on |__PART_FAMILY_DEVICE_NAMES__|.
+    Hardware acceleration has been successfully verified with the `W3C WebCodecs VideoDecoder Interface <https://www.w3.org/TR/webcodecs/#videodecoder-interface>`_, which serves as the backend technology for streaming platforms such as YouTube and Vimeo.
 
-    Streaming platforms and demuxed videos support hardware acceleration for video playback. 
-    This is done using the v4l2 stateful decoder API that interacts with the Wave5 present on |__PART_FAMILY_DEVICE_NAMES__|.
+    Tested streaming sources include HTML5 video playback, YouTube, and Vimeo.
 
-    Tested streaming sources include HTML video playback, YouTube, and Vimeo.
+**HTML5 Video Playback**   
 
-    HTML video playback:
+An **HTML5 video** is a standard video element embedded directly into a webpage using the ``<video>`` tag.
+Unlike platforms such as YouTube or Vimeo, which run within complex web applications containing ads, thumbnails, and JavaScript-heavy interfaces, HTML5 video playback delivers the raw video stream directly to the browser's player.
 
-    .. code-block:: console
+.. ifconfig:: CONFIG_part_variant not in ('AM62X', 'AM62AX', 'J721E')
 
-        $ chromium http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+    This makes it ideal for testing hardware decoding performance, as it avoids additional CPU load from webpage rendering and scripting.
 
-    Vimeo streaming:
+.. code-block:: console
 
-    .. code-block:: console
+    $ chromium http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 
-        $ chromium https://player.vimeo.com/video/640499893
+**Vimeo Streaming**
 
-    YouTube streaming:
+.. ifconfig:: CONFIG_part_variant not in ('AM62X', 'AM62AX', 'J721E')
+    
+    Vimeo streams typically use the **H.264 codec** for video, which is supported by hardware acceleration through the V4L2 decoder.
+    Unlike YouTube, Vimeo does not dynamically switch codecs based on system capability and generally delivers consistent H.264 streams across devices,
+    making it more predictable for hardware decoding tests.
 
-    .. code-block:: console
+Vimeo's embedded player also loads with a lightweight interface and fewer background scripts compared to YouTube, reducing CPU overhead during playback.
+This setup makes Vimeo a good middle ground between pure HTML5 playback and YouTube's heavier web application.
 
-        $ chromium https://www.youtube.com/embed/R6MlUcmOul8
+In the embedded player, the **resolution can be preset** before starting the stream.
 
-    .. note::
 
-        - YouTube and Vimeo perform best when played in an **embedded player**, as loading the full webpage and thumbnails is CPU-intensive.
-        - Keeping the **video progress bar minimized** also improves playback performance.
-        - For YouTube streaming, **Chromium requires an extension** to force YouTube to use the H.264 codec for hardware acceleration.
-        - Tested resolutions is up to 1080p30. Higher resolutions may work depending on the platform capabilities.
+.. code-block:: console
+
+    $ chromium https://player.vimeo.com/video/640499893
+
+**YouTube Streaming**
+
+YouTube commonly uses **VP9** or **AV1** codecs for playback, which are **not hardware accelerated** on this platform.
+When these codecs are used, Chromium falls back to **software decoding**, resulting in high CPU usage, especially at higher resolutions.
+
+.. ifconfig:: CONFIG_part_variant not in ('AM62X', 'AM62AX', 'J721E')
+    
+    To enable hardware acceleration, **Chromium requires an extension** that forces YouTube to use the **H.264 codec**.
+
+In the embedded player, the **resolution cannot be preset** before starting the stream.
+
+.. code-block:: console
+
+    $ chromium https://www.youtube.com/embed/R6MlUcmOul8
+
+.. note::
+
+    - YouTube and Vimeo perform best when played in an **embedded player**, as loading the full webpage and thumbnails is CPU-intensive.
+    - Keeping the **video progress bar minimized** also improves playback performance.
+    - **Audio decoding** in Chromium is performed in **software**, as hardware acceleration for audio streams is not supported.
+    - Tested resolutions are up to **1080p30**. Higher resolutions may work depending on the platform capabilities.
+    - Hardware accelerated encoding for WebRTC is not currently supported
+  
